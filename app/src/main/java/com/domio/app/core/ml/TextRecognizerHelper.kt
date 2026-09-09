@@ -29,7 +29,7 @@ class TextRecognizerHelper(private val context: Context) {
     )
 
     private val generativeModel = GenerativeModel(
-        modelName = "gemini-3.5-flash",
+        modelName = "gemini-1.5-flash",
         apiKey = BuildConfig.GEMINI_API_KEY,
         generationConfig = generationConfig {
             responseMimeType = "application/json"
@@ -106,7 +106,8 @@ class TextRecognizerHelper(private val context: Context) {
             """.trimIndent()
 
             val aiResponse = generativeModel.generateContent(prompt)
-            val jsonText = aiResponse.text ?: throw Exception("Empty AI response")
+            val rawJson = aiResponse.text ?: throw Exception("Empty AI response")
+            val jsonText = rawJson.replace("```json", "").replace("```", "").trim()
             
             val geminiResult = Gson().fromJson(jsonText, GeminiDocumentResult::class.java)
 

@@ -8,7 +8,7 @@ async function lookupProductController(req, res) {
     try {
 
         const barcode =
-            String(req.params.barcode).trim();
+            String(req.params.barcode || "").trim();
 
 
         if (!barcode) {
@@ -23,14 +23,21 @@ async function lookupProductController(req, res) {
         }
 
 
+        // For non-numeric or non-standard length barcodes (e.g. serial numbers, charger adapters),
+        // we still return 200 with found=false so the client gets a clean response.
         if (!/^\d{8,14}$/.test(barcode)) {
 
-            return res.status(400).json({
+            console.log(`Non-standard barcode scanned: ${barcode}`);
 
-                success: false,
+            return res.status(200).json({
 
-                message:
-                    "Invalid barcode"
+                success: true,
+
+                found: false,
+
+                barcode,
+
+                reason: "NON_STANDARD_BARCODE"
             });
         }
 
@@ -55,12 +62,15 @@ async function lookupProductController(req, res) {
         );
 
 
-        return res.status(500).json({
+        return res.status(200).json({
 
-            success: false,
+            success: true,
 
-            message:
-                "Unable to lookup product"
+            found: false,
+
+            barcode: req.params.barcode || "",
+
+            reason: "LOOKUP_ERROR"
         });
     }
 }

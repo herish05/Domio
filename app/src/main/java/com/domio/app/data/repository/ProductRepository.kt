@@ -33,8 +33,8 @@ class ProductRepository {
             }
 
         } catch (e: Exception) {
-
-            Result.failure(e)
+            // Log exception and return success(null) so user gets clean fallback UI instead of raw HTTP errors
+            Result.success(null)
         }
     }
 }

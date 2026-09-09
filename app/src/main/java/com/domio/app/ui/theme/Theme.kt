@@ -8,54 +8,56 @@ import androidx.compose.runtime.Composable
 import com.domio.app.core.ui.theme.*
 
 private val DomioLightColorScheme = lightColorScheme(
-
-    primary = LightPrimary,
+    primary = FantasticPinkLight,
     onPrimary = LightSurface,
+    primaryContainer = FantasticPinkSoft,
+    onPrimaryContainer = FantasticPinkDark,
 
-    primaryContainer = LightPrimarySoft,
-    onPrimaryContainer = LightPrimaryDark,
-
-    secondary = AccentPurple,
+    secondary = AccentViolet,
     onSecondary = LightSurface,
+    secondaryContainer = LightSurfaceVariant,
+    onSecondaryContainer = LightText,
+
+    tertiary = AccentCyan,
+    onTertiary = LightSurface,
 
     background = LightBackground,
     onBackground = LightText,
 
     surface = LightSurface,
     onSurface = LightText,
-
-    surfaceVariant = LightPrimarySoft,
+    surfaceVariant = LightSurfaceElevated,
     onSurfaceVariant = LightTextSecondary,
 
     outline = LightBorder,
-
-    error = Danger,
+    error = DangerColor,
     onError = LightSurface
 )
 
 private val DomioDarkColorScheme = darkColorScheme(
-
-    primary = DarkPrimary,
+    primary = FantasticPink,
     onPrimary = DarkBackground,
+    primaryContainer = FantasticPinkContainerDark,
+    onPrimaryContainer = FantasticPinkSoft,
 
-    primaryContainer = DarkPrimarySoft,
-    onPrimaryContainer = DarkPrimary,
-
-    secondary = AccentPurpleDark,
+    secondary = AccentVioletLight,
     onSecondary = DarkBackground,
+    secondaryContainer = DarkSurfaceVariant,
+    onSecondaryContainer = DarkText,
+
+    tertiary = AccentCyan,
+    onTertiary = DarkBackground,
 
     background = DarkBackground,
     onBackground = DarkText,
 
     surface = DarkSurface,
     onSurface = DarkText,
-
     surfaceVariant = DarkSurfaceElevated,
     onSurfaceVariant = DarkTextSecondary,
 
     outline = DarkBorder,
-
-    error = DangerDark,
+    error = DangerColor,
     onError = DarkBackground
 )
 
@@ -64,13 +66,7 @@ fun DomioTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-
-    val colorScheme =
-        if (darkTheme) {
-            DomioDarkColorScheme
-        } else {
-            DomioLightColorScheme
-        }
+    val colorScheme = if (darkTheme) DomioDarkColorScheme else DomioLightColorScheme
 
     MaterialTheme(
         colorScheme = colorScheme,

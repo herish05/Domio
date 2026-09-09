@@ -16,6 +16,10 @@ sealed class DomioDestination(
 
     data object ManualAsset : DomioDestination("manual_asset")
 
+    data object ThingDetails : DomioDestination("thing_details/{assetId}") {
+        fun createRoute(assetId: String) = "thing_details/$assetId"
+    }
+
     data object AddDocument : DomioDestination("add_document")
     
     data object DocumentDetails : DomioDestination("document_details/{documentId}") {

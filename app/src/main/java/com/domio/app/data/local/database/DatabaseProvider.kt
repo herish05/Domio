@@ -17,6 +17,7 @@ object DatabaseProvider {
                 DomioDatabase::class.java,
                 "domio.db"
             )
+                .addMigrations(MIGRATION_2_3)
                 .fallbackToDestructiveMigration()
                 .build()
                 .also {

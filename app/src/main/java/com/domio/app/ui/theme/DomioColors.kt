@@ -3,55 +3,55 @@ package com.domio.app.core.ui.theme
 import androidx.compose.ui.graphics.Color
 
 // ─────────────────────────────────────────────
-// LIGHT THEME
+// FANTASTIC PINK MODERN COLOR PALETTE
 // ─────────────────────────────────────────────
 
-val LightBackground = Color(0xFFF6F8F5)
+// Primary Accent - Fantastic Pink
+val FantasticPink = Color(0xFFFF2A6D)
+val FantasticPinkLight = Color(0xFFE91E63)
+val FantasticPinkDark = Color(0xFFD81B60)
+val FantasticPinkSoft = Color(0xFFFFE0EB)
+val FantasticPinkContainerDark = Color(0xFF3B1225)
+
+// Secondary & Tertiary Accents
+val AccentViolet = Color(0xFF9C27B0)
+val AccentVioletLight = Color(0xFFBA68C8)
+val AccentVioletDark = Color(0xFF7B1FA2)
+
+val AccentMint = Color(0xFF00E676)
+val AccentMintDark = Color(0xFF00C853)
+val AccentCyan = Color(0xFF00B0FF)
+val AccentGold = Color(0xFFFFB300)
+
+// Light Theme Surface Colors (Warm Rose Porcelain)
+val LightBackground = Color(0xFFFFF7FA)
 val LightSurface = Color(0xFFFFFFFF)
-val LightSurfaceElevated = Color(0xFFFFFFFF)
+val LightSurfaceElevated = Color(0xFFFFF0F5)
+val LightSurfaceVariant = Color(0xFFFCE4EC)
 
-val LightPrimary = Color(0xFF2F7D5A)
-val LightPrimaryDark = Color(0xFF236247)
-val LightPrimarySoft = Color(0xFFE4F2EA)
+val LightText = Color(0xFF1F1218)
+val LightTextSecondary = Color(0xFF755B66)
+val LightBorder = Color(0xFFF8CFDD)
 
-val LightText = Color(0xFF17231D)
-val LightTextSecondary = Color(0xFF65716A)
-val LightBorder = Color(0xFFDFE6E1)
+// Dark Theme Surface Colors (Deep Midnight Velvet)
+val DarkBackground = Color(0xFF0D0B18)
+val DarkSurface = Color(0xFF181427)
+val DarkSurfaceElevated = Color(0xFF231D38)
+val DarkSurfaceVariant = Color(0xFF2D2447)
 
+val DarkText = Color(0xFFFAF5F8)
+val DarkTextSecondary = Color(0xFFBCA6B3)
+val DarkBorder = Color(0xFF382A40)
 
-// ─────────────────────────────────────────────
-// DARK THEME
-// ─────────────────────────────────────────────
+// Semantic Status Colors
+val SuccessColor = Color(0xFF00E676)
+val SuccessContainerLight = Color(0xFFE8F5E9)
+val SuccessContainerDark = Color(0xFF1B3E2B)
 
-val DarkBackground = Color(0xFF0E1511)
-val DarkSurface = Color(0xFF162019)
-val DarkSurfaceElevated = Color(0xFF1C2921)
+val WarningColor = Color(0xFFFF9100)
+val WarningContainerLight = Color(0xFFFFF3E0)
+val WarningContainerDark = Color(0xFF3E2812)
 
-val DarkPrimary = Color(0xFF69C596)
-val DarkPrimarySoft = Color(0xFF244D38)
-
-val DarkText = Color(0xFFF1F5F2)
-val DarkTextSecondary = Color(0xFFAAB7AE)
-val DarkBorder = Color(0xFF2A3930)
-
-
-// ─────────────────────────────────────────────
-// SEMANTIC COLORS
-// ─────────────────────────────────────────────
-
-val Success = Color(0xFF31845B)
-val SuccessDark = Color(0xFF69C596)
-
-val Warning = Color(0xFFD99A2B)
-val WarningDark = Color(0xFFE8B85C)
-
-val Danger = Color(0xFFD65C5C)
-val DangerDark = Color(0xFFF07878)
-
-
-// ─────────────────────────────────────────────
-// ACCENT
-// ─────────────────────────────────────────────
-
-val AccentPurple = Color(0xFF7C6AE6)
-val AccentPurpleDark = Color(0xFFA99BF5)
+val DangerColor = Color(0xFFFF1744)
+val DangerContainerLight = Color(0xFFFFEBEE)
+val DangerContainerDark = Color(0xFF3E121A)

@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 data class ProductUiState(
     val isLoading: Boolean = false,
     val product: ProductDto? = null,
+    val isNotFound: Boolean = false,
     val error: String? = null
 )
 
@@ -47,7 +48,8 @@ class ProductViewModel : ViewModel() {
                         _uiState.value =
                             ProductUiState(
                                 isLoading = false,
-                                product = product
+                                product = product,
+                                isNotFound = false
                             )
 
                     } else {
@@ -55,19 +57,18 @@ class ProductViewModel : ViewModel() {
                         _uiState.value =
                             ProductUiState(
                                 isLoading = false,
-                                error =
-                                    "Product not found"
+                                product = null,
+                                isNotFound = true
                             )
                     }
                 }
-                .onFailure { exception ->
+                .onFailure {
 
                     _uiState.value =
                         ProductUiState(
                             isLoading = false,
-                            error =
-                                exception.message
-                                    ?: "Unable to fetch product"
+                            product = null,
+                            isNotFound = true
                         )
                 }
         }

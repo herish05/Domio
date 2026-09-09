@@ -1,20 +1,39 @@
 package com.domio.app
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-
+import androidx.compose.runtime.remember
+import androidx.fragment.app.FragmentActivity
+import com.domio.app.core.security.SecurityManager
 import com.domio.app.ui.theme.DomioTheme
+import com.domio.app.ui.theme.LocalThemeState
+import com.domio.app.ui.theme.ProvideThemeState
+import com.domio.app.ui.theme.ThemeState
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
+
+    lateinit var securityManager: SecurityManager
+        private set
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        securityManager = SecurityManager(this)
 
         setContent {
-            DomioTheme {
-                DomioApp()
+            val themeState = remember { ThemeState(initialDark = true) }
+
+            ProvideThemeState(themeState = themeState) {
+                DomioTheme(darkTheme = LocalThemeState.current.isDark) {
+                    DomioApp(securityManager = securityManager)
+                }
             }
         }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // Lock sessions on app exit if enabled
+        securityManager.lockAppSession()
+        securityManager.lockDocumentVaultSession()
     }
 }
