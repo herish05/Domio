@@ -86,4 +86,13 @@ class DocumentViewModel(
     suspend fun getDocument(id: String): DocumentEntity? {
         return repository.getDocument(id)
     }
+
+    fun deleteDocument(documentId: String) {
+        viewModelScope.launch {
+            val doc = repository.getDocument(documentId)
+            if (doc != null) {
+                repository.deleteDocument(doc)
+            }
+        }
+    }
 }

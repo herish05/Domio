@@ -1,5 +1,8 @@
 package com.domio.app.features.documents
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,22 +21,86 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
+import com.domio.app.core.ml.SmartParsedDocument
+import com.domio.app.core.ml.TextRecognizerHelper
+import com.domio.app.core.util.DocumentConverter
+import com.domio.app.core.util.ExportAction
+import com.domio.app.core.util.ExportFormat
 import com.domio.app.data.local.entity.DocumentEntity
 import com.domio.app.ui.components.ThemeToggleIconButton
+import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DocumentsScreen(
     documents: List<DocumentEntity>,
     onAdd: () -> Unit,
-    onDocumentClick: (String) -> Unit
+    onDocumentClick: (String) -> Unit,
+    onScanDocument: () -> Unit = {},
+    onDocumentScannedFromGallery: (SmartParsedDocument?) -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val textRecognizer = remember { TextRecognizerHelper(context) }
+
     var search by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<String?>(null) }
+    var isProcessingImport by remember { mutableStateOf(false) }
+
+    var selectedExportDoc by remember { mutableStateOf<DocumentEntity?>(null) }
+
+    // FILE PICKER FOR IMPORT FROM GALLERY / STORAGE
+    val filePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            isProcessingImport = true
+            coroutineScope.launch {
+                val permanentUri = try {
+                    val inputStream = context.contentResolver.openInputStream(uri)
+                    if (inputStream != null) {
+                        val docsDir = File(context.filesDir, "documents").apply { if (!exists()) mkdirs() }
+                        val ext = if (context.contentResolver.getType(uri)?.contains("pdf", true) == true) "pdf" else "jpg"
+                        val file = File(docsDir, "doc_${System.currentTimeMillis()}.$ext")
+                        val outputStream = FileOutputStream(file)
+                        inputStream.copyTo(outputStream)
+                        inputStream.close()
+                        outputStream.close()
+
+                        Uri.fromFile(file)
+                    } else uri
+                } catch (e: Exception) {
+                    uri
+                }
+
+                val parsed = textRecognizer.analyzeDocument(permanentUri)
+                isProcessingImport = false
+                onDocumentScannedFromGallery(parsed)
+            }
+        }
+    }
+
+    if (selectedExportDoc != null) {
+        ExportFormatDialog(
+            initialAction = ExportAction.SHARE,
+            onDismiss = { selectedExportDoc = null },
+            onConfirm = { format, action ->
+                val doc = selectedExportDoc
+                selectedExportDoc = null
+                if (doc != null) {
+                    DocumentConverter.exportDocument(context, doc, format, action)
+                }
+            }
+        )
+    }
 
     val filteredDocuments = if (search.isBlank()) {
         documents
@@ -45,17 +112,55 @@ fun DocumentsScreen(
         }
     }
 
+    val totalAmount = remember(documents) {
+        documents.mapNotNull { it.amount }.sum()
+    }
+    val warrantyCount = remember(documents) {
+        documents.count { it.type.contains("Warranty", true) }
+    }
+
+    var showFabMenu by remember { mutableStateOf(false) }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = onAdd,
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.padding(bottom = 16.dp)
-            ) {
-                Icon(imageVector = Icons.Outlined.Add, contentDescription = "Add Document")
+            Box {
+                FloatingActionButton(
+                    onClick = { showFabMenu = true },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.padding(bottom = 16.dp)
+                ) {
+                    Icon(imageVector = Icons.Outlined.Add, contentDescription = "Add Document Options")
+                }
+
+                DropdownMenu(
+                    expanded = showFabMenu,
+                    onDismissRequest = { showFabMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("📷 Scan Document with Camera", fontWeight = FontWeight.Bold) },
+                        onClick = {
+                            showFabMenu = false
+                            onScanDocument()
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("📥 Import PDF / Image from Gallery", fontWeight = FontWeight.Bold) },
+                        onClick = {
+                            showFabMenu = false
+                            filePickerLauncher.launch("*/*")
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("✍️ Add Document Manually", fontWeight = FontWeight.Bold) },
+                        onClick = {
+                            showFabMenu = false
+                            onAdd()
+                        }
+                    )
+                }
             }
         }
     ) { paddingValues ->
@@ -81,13 +186,13 @@ fun DocumentsScreen(
                     if (selectedCategory == null) {
                         Column {
                             Text(
-                                text = "Documents",
+                                text = "Document Vault 📄",
                                 style = MaterialTheme.typography.headlineMedium,
                                 fontWeight = FontWeight.Black,
                                 color = MaterialTheme.colorScheme.primary
                             )
                             Text(
-                                text = "Important bills, warranties, & receipts",
+                                text = "Centralized storage for bills, warranties & IDs",
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 style = MaterialTheme.typography.bodyMedium
                             )
@@ -109,7 +214,80 @@ fun DocumentsScreen(
                     ThemeToggleIconButton()
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // STORAGE SUMMARY & QUICK ACTION BAR
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(22.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = "${documents.size} Documents Saved",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "Total Value: ₹${totalAmount.toInt()} • $warrantyCount Warranties",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // QUICK ACTION BUTTONS (SCAN CAMERA, GALLERY IMPORT, MANUAL)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Button(
+                                onClick = onScanDocument,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(42.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                contentPadding = PaddingValues(horizontal = 8.dp)
+                            ) {
+                                Icon(Icons.Outlined.QrCodeScanner, null, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Scan Camera", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                            }
+
+                            OutlinedButton(
+                                onClick = { filePickerLauncher.launch("*/*") },
+                                enabled = !isProcessingImport,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(42.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                contentPadding = PaddingValues(horizontal = 8.dp)
+                            ) {
+                                if (isProcessingImport) {
+                                    CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
+                                } else {
+                                    Icon(Icons.Outlined.FileUpload, null, modifier = Modifier.size(16.dp))
+                                }
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(if (isProcessingImport) "Importing..." else "Import File", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
 
                 OutlinedTextField(
                     value = search,
@@ -123,11 +301,11 @@ fun DocumentsScreen(
                             tint = MaterialTheme.colorScheme.primary
                         )
                     },
-                    placeholder = { Text("Search documents by title, store, type...") },
+                    placeholder = { Text("Search documents by name, store, type...") },
                     shape = RoundedCornerShape(20.dp)
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
                 if (filteredDocuments.isEmpty()) {
                     Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
@@ -141,7 +319,7 @@ fun DocumentsScreen(
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(text = "No documents found", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(4.dp))
-                            Text(text = "Scan receipts or upload documents to keep them organized.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(text = "Scan receipts or upload PDF/images to keep them organized.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 } else if (selectedCategory == null && search.isBlank()) {
@@ -152,7 +330,7 @@ fun DocumentsScreen(
                         columns = GridCells.Fixed(2),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
-                        contentPadding = PaddingValues(bottom = 120.dp), // Fix bottom bar cutoff
+                        contentPadding = PaddingValues(bottom = 120.dp),
                         modifier = Modifier.weight(1f)
                     ) {
                         item {
@@ -186,13 +364,14 @@ fun DocumentsScreen(
                     } else {
                         LazyColumn(
                             verticalArrangement = Arrangement.spacedBy(12.dp),
-                            contentPadding = PaddingValues(bottom = 120.dp), // Fix bottom bar cutoff
+                            contentPadding = PaddingValues(bottom = 120.dp),
                             modifier = Modifier.weight(1f)
                         ) {
                             items(items = displayList, key = { it.id }) { document ->
                                 DocumentCard(
                                     document = document,
-                                    onClick = { onDocumentClick(document.id) }
+                                    onClick = { onDocumentClick(document.id) },
+                                    onExportClick = { selectedExportDoc = document }
                                 )
                             }
                         }
@@ -268,7 +447,8 @@ private fun CategoryCard(
 @Composable
 private fun DocumentCard(
     document: DocumentEntity,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onExportClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -325,13 +505,25 @@ private fun DocumentCard(
                 }
             }
 
-            if (document.amount != null && document.amount > 0) {
-                Text(
-                    text = "₹${document.amount.toInt()}",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (document.amount != null && document.amount > 0) {
+                    Text(
+                        text = "₹${document.amount.toInt()}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+
+                IconButton(onClick = onExportClick) {
+                    Icon(
+                        imageVector = Icons.Outlined.Share,
+                        contentDescription = "Export & Share",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
         }
     }

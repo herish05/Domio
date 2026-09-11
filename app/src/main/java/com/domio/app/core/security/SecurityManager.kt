@@ -19,21 +19,11 @@ class SecurityManager(private val context: Context) {
     private val _isAppLocked = MutableStateFlow(isMasterLockEnabled)
     val isAppLocked: StateFlow<Boolean> = _isAppLocked.asStateFlow()
 
-    private val _isDocumentVaultLocked = MutableStateFlow(isDocumentVaultLockEnabled)
-    val isDocumentVaultLocked: StateFlow<Boolean> = _isDocumentVaultLocked.asStateFlow()
-
     var isMasterLockEnabled: Boolean
         get() = prefs.getBoolean("master_app_lock_enabled", false)
         set(value) {
             prefs.edit().putBoolean("master_app_lock_enabled", value).apply()
             _isAppLocked.value = value
-        }
-
-    var isDocumentVaultLockEnabled: Boolean
-        get() = prefs.getBoolean("document_vault_lock_enabled", false)
-        set(value) {
-            prefs.edit().putBoolean("document_vault_lock_enabled", value).apply()
-            _isDocumentVaultLocked.value = value
         }
 
     fun unlockAppSession() {
@@ -43,16 +33,6 @@ class SecurityManager(private val context: Context) {
     fun lockAppSession() {
         if (isMasterLockEnabled) {
             _isAppLocked.value = true
-        }
-    }
-
-    fun unlockDocumentVaultSession() {
-        _isDocumentVaultLocked.value = false
-    }
-
-    fun lockDocumentVaultSession() {
-        if (isDocumentVaultLockEnabled) {
-            _isDocumentVaultLocked.value = true
         }
     }
 

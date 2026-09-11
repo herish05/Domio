@@ -38,7 +38,6 @@ fun DocumentVaultLockScreen(
                 subtitle = "Document Security Verification",
                 description = "To open your confidential documents, please complete the authentication.",
                 onSuccess = {
-                    securityManager.unlockDocumentVaultSession()
                     onUnlocked()
                 },
                 onError = { /* Keep locked */ }

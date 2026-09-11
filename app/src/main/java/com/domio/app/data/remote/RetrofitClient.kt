@@ -14,10 +14,10 @@ object RetrofitClient {
      * 10.0.2.2 = your computer's localhost
      *
      * Our Node.js server runs on:
-     * localhost:5000
+     * https://domio-6dae0c6a.fastapicloud.dev
      */
     private const val BASE_URL =
-        "http://127.0.0.1:5000/"
+        "https://domio-6dae0c6a.fastapicloud.dev/"
 
     private val loggingInterceptor =
         HttpLoggingInterceptor().apply {

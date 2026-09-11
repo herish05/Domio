@@ -20,7 +20,7 @@ class MainActivity : FragmentActivity() {
         securityManager = SecurityManager(this)
 
         setContent {
-            val themeState = remember { ThemeState(initialDark = true) }
+            val themeState = remember { ThemeState(this) }
 
             ProvideThemeState(themeState = themeState) {
                 DomioTheme(darkTheme = LocalThemeState.current.isDark) {
@@ -30,10 +30,4 @@ class MainActivity : FragmentActivity() {
         }
     }
 
-    override fun onStop() {
-        super.onStop()
-        // Lock sessions on app exit if enabled
-        securityManager.lockAppSession()
-        securityManager.lockDocumentVaultSession()
-    }
 }

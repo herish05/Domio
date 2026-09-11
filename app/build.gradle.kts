@@ -24,16 +24,47 @@ android {
         applicationId = "com.domio.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "2.0.0"
         
         buildConfigField("String", "GEMINI_API_KEY", "\"${localProperties.getProperty("GEMINI_API_KEY", "")}\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            val keystorePath = localProperties.getProperty("KEYSTORE_FILE")
+                ?: System.getenv("KEYSTORE_FILE")
+                ?: "release.jks"
+
+            val keystoreFile = listOf(
+                file(keystorePath),
+                rootProject.file(keystorePath)
+            ).firstOrNull { it.exists() }
+
+            val storePasswordProp = localProperties.getProperty("KEYSTORE_PASSWORD") ?: System.getenv("KEYSTORE_PASSWORD")
+            val keyAliasProp = localProperties.getProperty("KEY_ALIAS") ?: System.getenv("KEY_ALIAS")
+            val keyPasswordProp = localProperties.getProperty("KEY_PASSWORD") ?: System.getenv("KEY_PASSWORD")
+
+            if (keystoreFile != null && storePasswordProp != null && keyAliasProp != null && keyPasswordProp != null) {
+                storeFile = keystoreFile
+                storePassword = storePasswordProp
+                keyAlias = keyAliasProp
+                keyPassword = keyPasswordProp
+            } else {
+                val debugConfig = getByName("debug")
+                storeFile = debugConfig.storeFile
+                storePassword = debugConfig.storePassword
+                keyAlias = debugConfig.keyAlias
+                keyPassword = debugConfig.keyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("release")
             optimization {
                 enable = false
             }

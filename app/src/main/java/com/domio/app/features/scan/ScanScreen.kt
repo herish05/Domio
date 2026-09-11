@@ -87,7 +87,7 @@ fun ScanScreen(
                             inputStream.close()
                             outputStream.close()
 
-                            androidx.core.content.FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
+                            android.net.Uri.fromFile(file)
                         } else imageUri
                     } catch (e: Exception) {
                         imageUri

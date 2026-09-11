@@ -25,7 +25,6 @@ fun SecuritySettingsDialog(
     onDismiss: () -> Unit
 ) {
     var masterLockEnabled by remember { mutableStateOf(securityManager.isMasterLockEnabled) }
-    var docVaultLockEnabled by remember { mutableStateOf(securityManager.isDocumentVaultLockEnabled) }
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
@@ -117,57 +116,6 @@ fun SecuritySettingsDialog(
                             checked = masterLockEnabled,
                             onCheckedChange = {
                                 masterLockEnabled = it
-                                securityManager.isMasterLockEnabled = it
-                            }
-                        )
-                    }
-                }
-
-                // OPTION 2: DOCUMENT VAULT LOCK
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(14.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(
-                            modifier = Modifier.weight(1f),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Description,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.secondary
-                            )
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Column {
-                                Text(
-                                    text = "Document Vault Security",
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = "Require extra 2nd lock for Documents tab",
-                                    fontSize = 11.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-
-                        Switch(
-                            checked = docVaultLockEnabled,
-                            onCheckedChange = {
-                                docVaultLockEnabled = it
-                                securityManager.isDocumentVaultLockEnabled = it
                             }
                         )
                     }

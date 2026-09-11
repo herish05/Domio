@@ -75,7 +75,6 @@ fun DomioApp(
 
     // SECURITY LOCK STATES
     val isAppLocked by securityManager.isAppLocked.collectAsState()
-    val isDocVaultLocked by securityManager.isDocumentVaultLocked.collectAsState()
     var showSecuritySettings by remember { mutableStateOf(false) }
 
     // DATABASE & REPOSITORIES
@@ -106,11 +105,6 @@ fun DomioApp(
             route = DomioDestination.Things.route,
             label = "Things",
             icon = Icons.Outlined.GridView
-        ),
-        BottomItem(
-            route = DomioDestination.Scan.route,
-            label = "Scan",
-            icon = Icons.Outlined.QrCodeScanner
         ),
         BottomItem(
             route = DomioDestination.Documents.route,
@@ -240,40 +234,31 @@ fun DomioApp(
                         )
                     }
 
-                    // DOCUMENTS (Protected by 2nd-Tier Document Vault Lock if enabled)
+                    // DOCUMENTS
                     composable(DomioDestination.Documents.route) {
-                        if (isDocVaultLocked && securityManager.isDocumentVaultLockEnabled) {
-                            DocumentVaultLockScreen(
-                                securityManager = securityManager,
-                                onUnlocked = { securityManager.unlockDocumentVaultSession() }
-                            )
-                        } else {
-                            DocumentsScreen(
-                                documents = documentViewModel.documents.collectAsState().value,
-                                onAdd = { navController.navigate(DomioDestination.AddDocument.route) },
-                                onDocumentClick = { documentId ->
-                                    navController.navigate(DomioDestination.DocumentDetails.createRoute(documentId))
-                                }
-                            )
-                        }
+                        DocumentsScreen(
+                            documents = documentViewModel.documents.collectAsState().value,
+                            onAdd = { navController.navigate(DomioDestination.AddDocument.route) },
+                            onDocumentClick = { documentId ->
+                                navController.navigate(DomioDestination.DocumentDetails.createRoute(documentId))
+                            },
+                            onScanDocument = { navController.navigate(DomioDestination.Scan.route) },
+                            onDocumentScannedFromGallery = { parsedDocument ->
+                                scannedDocument = parsedDocument
+                                navController.navigate(DomioDestination.AddDocument.route)
+                            }
+                        )
                     }
 
-                    // DOCUMENT DETAILS (Protected by 2nd-Tier Document Vault Lock if enabled)
+                    // DOCUMENT DETAILS
                     composable(route = DomioDestination.DocumentDetails.route) { backStackEntry ->
                         val documentId = backStackEntry.arguments?.getString("documentId")
                         if (documentId != null) {
-                            if (isDocVaultLocked && securityManager.isDocumentVaultLockEnabled) {
-                                DocumentVaultLockScreen(
-                                    securityManager = securityManager,
-                                    onUnlocked = { securityManager.unlockDocumentVaultSession() }
-                                )
-                            } else {
-                                com.domio.app.features.documents.DocumentDetailsScreen(
-                                    documentId = documentId,
-                                    viewModel = documentViewModel,
-                                    onBack = { navController.popBackStack() }
-                                )
-                            }
+                            com.domio.app.features.documents.DocumentDetailsScreen(
+                                documentId = documentId,
+                                viewModel = documentViewModel,
+                                onBack = { navController.popBackStack() }
+                            )
                         }
                     }
 
@@ -391,7 +376,7 @@ fun DomioApp(
                                 )
                                 scannedDocument = null
                                 navController.navigate(DomioDestination.Documents.route) {
-                                    popUpTo(DomioDestination.Home.route)
+                                    popUpTo(DomioDestination.AddDocument.route) { inclusive = true }
                                 }
                             }
                         )
