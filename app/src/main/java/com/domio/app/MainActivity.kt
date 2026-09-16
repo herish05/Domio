@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.remember
 import androidx.fragment.app.FragmentActivity
+import com.domio.app.core.ads.AdManager
 import com.domio.app.core.security.SecurityManager
 import com.domio.app.ui.theme.DomioTheme
 import com.domio.app.ui.theme.LocalThemeState
@@ -18,6 +19,7 @@ class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         securityManager = SecurityManager(this)
+        AdManager.initialize(this)
 
         setContent {
             val themeState = remember { ThemeState(this) }

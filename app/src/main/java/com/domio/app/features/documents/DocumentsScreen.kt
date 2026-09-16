@@ -377,6 +377,11 @@ fun DocumentsScreen(
                         }
                     }
                 }
+
+                // ADMOB BANNER AD
+                com.domio.app.core.ads.BannerAdView(
+                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                )
             }
         }
     }

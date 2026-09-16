@@ -14,18 +14,14 @@ plugins {
 
 android {
     namespace = "com.domio.app"
-    compileSdk {
-        version = release(37) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.domio.app"
         minSdk = 26
-        targetSdk = 36
-        versionCode = 2
-        versionName = "2.0.0"
+        targetSdk = 35
+        versionCode = 3
+        versionName = "2.1.0"
         
         buildConfigField("String", "GEMINI_API_KEY", "\"${localProperties.getProperty("GEMINI_API_KEY", "")}\"")
 
@@ -95,6 +91,7 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     implementation("androidx.compose.material:material-icons-extended")
+    implementation("com.google.android.gms:play-services-ads:23.0.0")
     implementation("androidx.navigation:navigation-compose:2.9.3")
     implementation("com.squareup.retrofit2:retrofit:3.0.0")
     implementation("com.squareup.retrofit2:converter-gson:3.0.0")

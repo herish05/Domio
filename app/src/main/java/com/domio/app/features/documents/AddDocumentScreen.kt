@@ -193,20 +193,29 @@ fun AddDocumentScreen(
                                 amount.toDoubleOrNull() ?: cleanDynamicMap.entries.firstOrNull { it.key.contains("Amount", true) || it.key.contains("Price", true) }?.value?.replace(Regex("[^0-9.]"), "")?.toDoubleOrNull()
                             } else null
 
-                            onSave(
-                                title,
-                                type,
-                                resolvedNumber,
-                                resolvedIssuer,
-                                issueDatePickerState.selectedDateMillis,
-                                if (showExpiry) expiryDatePickerState.selectedDateMillis else null,
-                                resolvedAmount,
-                                notes.ifBlank { null },
-                                if (showReminder) reminderEnabled else false,
-                                reminderDaysBefore.toIntOrNull() ?: 30,
-                                currentFileUri,
-                                jsonFields
-                            )
+                            val doSave = {
+                                onSave(
+                                    title,
+                                    type,
+                                    resolvedNumber,
+                                    resolvedIssuer,
+                                    issueDatePickerState.selectedDateMillis,
+                                    if (showExpiry) expiryDatePickerState.selectedDateMillis else null,
+                                    resolvedAmount,
+                                    notes.ifBlank { null },
+                                    if (showReminder) reminderEnabled else false,
+                                    reminderDaysBefore.toIntOrNull() ?: 30,
+                                    currentFileUri,
+                                    jsonFields
+                                )
+                            }
+
+                            val activity = context as? android.app.Activity
+                            if (activity != null) {
+                                com.domio.app.core.ads.AdManager.showInterstitialAd(activity, doSave)
+                            } else {
+                                doSave()
+                            }
                         },
                         enabled = title.isNotBlank() && type.isNotBlank() && !isAnalyzingFile
                     ) {
