@@ -47,13 +47,17 @@ class TextRecognizerHelper(private val context: Context) {
             Log.e("TextRecognizerHelper", "ML Kit OCR failed", e)
         }
 
+        val genericType = DocumentClassifier.classifyDocument(rawText)
+
         // 1. Specialized Smart Local On-Device Parser for Indian & Global Documents
         val fallback = parseLocally(rawText, uri)
 
         // 2. If Gemini API key is missing or default placeholder, return refined local fallback
         if (BuildConfig.GEMINI_API_KEY.isBlank() || BuildConfig.GEMINI_API_KEY == "AIzaSy_YOUR_API_KEY_HERE") {
             Log.d("TextRecognizerHelper", "Using specialized on-device ML Kit OCR parser")
-            return fallback
+            return fallback.copy(
+                extractedType = fallback.extractedType ?: genericType
+            )
         }
 
         // 3. Try Gemini AI refinement with safety fallback
@@ -96,6 +100,10 @@ class TextRecognizerHelper(private val context: Context) {
                 it.isNotBlank() && !it.equals("To,", true) && !it.startsWith("API Error", true) 
             } ?: fallback.extractedTitle
 
+            val normalizedType = (geminiResult.type?.takeIf { it.isNotBlank() }
+                ?: fallback.extractedType
+                ?: genericType)
+
             SmartParsedDocument(
                 fileUri = uri.toString(),
                 extractedAmount = geminiResult.amount ?: fallback.extractedAmount,
@@ -104,7 +112,7 @@ class TextRecognizerHelper(private val context: Context) {
                 extractedIssuer = geminiResult.issuer?.takeIf { it.isNotBlank() } ?: fallback.extractedIssuer,
                 extractedDocumentNumber = geminiResult.documentNumber?.takeIf { it.isNotBlank() } ?: fallback.extractedDocumentNumber,
                 extractedTitle = cleanTitle,
-                extractedType = geminiResult.type?.takeIf { it.isNotBlank() } ?: fallback.extractedType,
+                extractedType = normalizedType,
                 extractedDynamicFields = geminiResult.dynamicFields?.takeIf { it.isNotEmpty() } ?: fallback.extractedDynamicFields
             )
         } catch (e: Exception) {
